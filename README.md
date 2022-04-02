@@ -14,3 +14,4 @@ Smart Badge for displaying and trading POAPs. Based on the [Open Smart Watch](ht
 * Hold down BTN1 FLASH
 * Momentarily Press EN RESET while continuing to hold down BTN1 FLASH
 * Once PlatformIO begins to upload (% indicator) you may release BTN1 FLASH
+* Following a valid upload, press EN RESET to begin the App (Serial Monitor may be started at this point)

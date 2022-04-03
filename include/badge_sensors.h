@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include "badge_pins.h"
+// #include "badge_pins.h"
 #include "telit_bma400.h"
 
 class BadgeSensors {

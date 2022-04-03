@@ -11,3 +11,6 @@
 #define BTN_1 0
 #define BTN_2 10
 #define BTN_3 13
+
+#define RX1 27
+#define TX1 14

@@ -11,6 +11,9 @@
 #include "SPIFFS.h"
 
 #include "pngle.h"
+#include "badge_pins.h"
+#include "badge_buttons.h"
+
 #define LINE_BUF_SIZE 64  // pixel = 524, 16 = 406, 32 = 386, 64 = 375, 128 = 368, 240 = 367, no draw = 324 (51ms v 200ms)
 int16_t px = 0, sx = 0;
 int16_t py = 0, sy = 0;
@@ -18,16 +21,10 @@ uint8_t pc = 0;
 uint16_t lbuf[LINE_BUF_SIZE];
 int16_t png_dx = 0, png_dy = 0;
 
-#define TFT_CS 5
-#define TFT_DC 12
-#define TFT_RST 33
-#define TFT_SCK 18
-#define TFT_MOSI 23
-#define TFT_MISO -1  // no data coming back
-#define TFT_LED 9
-
 Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCK, TFT_MOSI, TFT_MISO, VSPI /* spi_num */);
 Arduino_GC9A01 *tft = new Arduino_GC9A01(bus, TFT_RST, 0 /* rotation */, true /* IPS */);
+
+BadgeButtons buttons;
 
 void onDraw(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t rgba[4]) {
   uint16_t color = (rgba[0] << 8 & 0xf800) | (rgba[1] << 3 & 0x07e0) | (rgba[2] >> 3 & 0x001f);
@@ -41,6 +38,8 @@ void loadPNG(const char *path) {
     return;
   }
 
+  tft->fillScreen(0);
+  
   pngle_t *pngle = pngle_new();
   pngle_set_draw_callback(pngle, onDraw);
 
@@ -75,10 +74,24 @@ void setup() {
     return;
   }
 
-  tft->drawPixel(100, 100, 0xFFE0);
-
+  buttons.setup();
   loadPNG("/poap01.png");
 }
 
 void loop() {
+  int buttonVal = buttons.check();
+  char * path = "";
+  if (buttonVal != -1) {
+    switch (buttonVal) {
+      case 0: path = "/poap01.png"; break;
+      case 1: path = "/poap02.png"; break;
+      case 2: path = "/poap01.png"; break;
+      default: path = "/poap01.png"; break;
+    }
+
+    Serial.printf("Load %s for Button %d", path, buttonVal);
+    Serial.println();
+
+    loadPNG(path);
+  }
 }

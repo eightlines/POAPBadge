@@ -1,5 +1,5 @@
 #ifndef BADGE_BUTTONS_H
-#define BADGE BUTTONS_H
+#define BADGE_BUTTONS_H
 
 #include <Arduino.h>
 #include "badge_pins.h"

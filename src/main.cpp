@@ -3,9 +3,11 @@
 #include "badge_pins.h"
 #include "badge_buttons.h"
 #include "badge_display.h"
+#include "badge_sensors.h"
 
 BadgeButtons buttons;
 BadgeDisplay display;
+BadgeSensors sensors;
 
 void setup() {
   Serial.begin(115200);
@@ -13,6 +15,8 @@ void setup() {
 
   buttons.setup();
   display.setup();
+  sensors.setup();
+  
   display.loadPNG("/poap01.png");
 }
 

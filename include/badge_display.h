@@ -20,6 +20,8 @@ public:
     BadgeDisplay() {};
     void setup();
     void loadPNG(const char *path);
+    void turnOff();
+    void turnOn();
 };
 
 #endif

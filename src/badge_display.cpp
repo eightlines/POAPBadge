@@ -57,3 +57,11 @@ void BadgeDisplay::loadPNG(const char *path) {
   pngle_destroy(pngle);
   file.close();
 }
+
+void BadgeDisplay::turnOff() {
+  tft->displayOff();
+}
+
+void BadgeDisplay::turnOn() {
+  tft->displayOn();
+}

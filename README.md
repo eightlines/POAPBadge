@@ -22,3 +22,7 @@ Smart Badge for displaying and trading POAPs. Based on the [Open Smart Watch](ht
 * Serial Monitor tasks must be ended (Ctrl-C)
 * Project Tasks > pico32 > Platform > Build Filesystem Image
 * Project Tasks > pico32 > Platform > Upload Filesystem Image (Using same process from Uploading Firmware button presses)
+
+# 3D Printed Files
+* [3D Model](https://a360.co/3DznrJ3)
+* Model has not been printed yet and may contain incorrect measurements

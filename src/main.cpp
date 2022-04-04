@@ -9,6 +9,8 @@ BadgeButtons buttons;
 BadgeDisplay display;
 BadgeSensors sensors;
 
+#define INACIVITY_TIMEOUT 10000
+
 void setup() {
   Serial.begin(115200);
   Serial.println("POAP Badge Init");
@@ -16,11 +18,22 @@ void setup() {
   buttons.setup();
   display.setup();
   sensors.setup();
-  
+
   display.loadPNG("/poap01.png");
 }
 
 void loop() {
+  sensors.update();
+  // unsigned long lastActive = sensors.lastActivity();
+  // int tapResult = sensors.tap();
+  // Serial.println(lastActive);
+  // if (millis() - lastActive > INACIVITY_TIMEOUT) {
+  //   Serial.println("Display Off");
+  //   display.turnOff();
+  // } else {
+  //   display.turnOn();
+  // }
+
   int buttonVal = buttons.check();
   String path = "";
   if (buttonVal != -1) {

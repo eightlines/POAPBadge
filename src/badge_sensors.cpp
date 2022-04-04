@@ -8,23 +8,30 @@ struct test_axes_wise_counter
     uint8_t y_counter;
     uint8_t z_counter;
 };
+struct bma400_dev bma;
+struct bma400_sensor_conf conf[2];
+struct test_axes_wise_counter act_ch_cnt = { 0 };
+struct bma400_sensor_data accel;
+struct bma400_sensor_conf accel_setting[2];
+struct bma400_int_enable int_en[2];
+struct bma400_int_enable int_accel_en;
 
 void BadgeSensors::setup() {
     Serial.println("POAP Badge Setup Sensors");
     
-    struct bma400_dev bma;
+    configureBMA400();
+    configureTap(); // Single / Double Tap
+    configureActivity(); // Activity Sensing
 
-    int8_t result;
-    uint16_t int_status = 0;
-    int8_t count = 0;
+    Serial.println("Activity, Single & Double Tap interupts enabled.");
+}
 
-    struct bma400_sensor_conf conf[2];
-    struct test_axes_wise_counter act_ch_cnt = { 0 };
-    struct bma400_sensor_data accel;
-    struct bma400_sensor_conf accel_setting[2];
-    struct bma400_int_enable int_en[2];
-    struct bma400_int_enable int_accel_en;
+void BadgeSensors::update() {
     
+}
+
+int8_t BadgeSensors::configureBMA400() {
+    int8_t result;
     memset(conf, 0, sizeof(struct bma400_sensor_conf));
     delay(1000);
 
@@ -37,7 +44,12 @@ void BadgeSensors::setup() {
     result = bma400_init(&bma);
     bma400_check_rslt("bma400_init", result);
 
-    // Single / Double Tap
+    return result;
+}
+
+int8_t BadgeSensors::configureTap() {
+    int8_t result;
+
     conf[0].type = BMA400_ACCEL;
     conf[1].type = BMA400_TAP_INT;
 
@@ -71,7 +83,12 @@ void BadgeSensors::setup() {
     result = bma400_enable_interrupt(int_en, 2, &bma);
     bma400_check_rslt("bma400_enable_interrupt", result);
 
-    // Activity Sensing
+    return result;
+}
+
+int8_t BadgeSensors::configureActivity() {
+    int8_t result;
+
     accel_setting[0].type = BMA400_ACTIVITY_CHANGE_INT;
     accel_setting[1].type = BMA400_ACCEL;
 
@@ -100,78 +117,75 @@ void BadgeSensors::setup() {
     result = bma400_enable_interrupt(&int_accel_en, 1, &bma);
     bma400_check_rslt("bma400_enable_interrupt", result);
 
-    if (result == BMA400_OK) {
-        Serial.println("BMA400 Self Test Passed");
-    }
+    return result;
+}
 
-    Serial.println("Activity, Single & Double Tap interupts enabled.");
+unsigned long BadgeSensors::lastActivity() {
+    int8_t result;
+    uint16_t int_status = 0;
+    unsigned long returnVal = 0;
 
-    while (1) {
-        result = bma400_get_sensor_conf(accel_setting, 2, &bma);
-        bma400_check_rslt("bma400_get_sensor_conf", result);
+    if (int_status & BMA400_ASSERTED_ACT_CH_X) {
+        Serial.println("Activity change interrupt asserted on X Axis");
 
-        result = bma400_get_interrupt_status(&int_status, &bma);
-        bma400_check_rslt("bma400_get_interrupt_status", result);
+        result = bma400_get_accel_data(BMA400_DATA_SENSOR_TIME, &accel, &bma);
+        bma400_check_rslt("bma400_get_accel_data_x", result);
 
         if (result == BMA400_OK) {
-            if (int_status & BMA400_ASSERTED_S_TAP_INT) {
-                Serial.println("Single Tap Detected");
-                count++;
-            }
-
-            if (int_status & BMA400_ASSERTED_D_TAP_INT) {
-                Serial.println("Double Tap Detected");
-                count++;
-            }
-
-            if (count == 5) {
-                Serial.println("Tap Interrupt Testing completed");
-                break;
-            }
-            delay(10);
-        }
-
-        if (int_status & BMA400_ASSERTED_ACT_CH_X) {
-            Serial.println("Activity change interrupt asserted on X Axis");
-            act_ch_cnt.x_counter++;
-
-            result = bma400_get_accel_data(BMA400_DATA_SENSOR_TIME, &accel, &bma);
-            bma400_check_rslt("bma400_get_accel_data_x", result);
-
-            if (result == BMA400_OK) {
-                Serial.printf("Accel Data: x: %d, y: %d, z: %d, sensor time: %d", accel.x, accel.y, accel.z, accel.sensortime);
-            }
-        }
-
-        if (int_status & BMA400_ASSERTED_ACT_CH_Y) {
-            Serial.println("Activity change interrupt asserted on Y Axis");
-            act_ch_cnt.y_counter++;
-
-            result = bma400_get_accel_data(BMA400_DATA_SENSOR_TIME, &accel, &bma);
-            bma400_check_rslt("bma400_get_accel_data_y", result);
-
-            if (result == BMA400_OK) {
-                Serial.printf("Accel Data: x: %d, y: %d, z: %d, sensor time: %d", accel.x, accel.y, accel.z, accel.sensortime);
-            }
-        }
-
-        if (int_status & BMA400_ASSERTED_ACT_CH_Z) {
-            Serial.println("Activity change interrupt asserted on Z Axis");
-            act_ch_cnt.z_counter++;
-
-            result = bma400_get_accel_data(BMA400_DATA_SENSOR_TIME, &accel, &bma);
-            bma400_check_rslt("bma400_get_accel_data_z", result);
-
-            if (result == BMA400_OK) {
-                Serial.printf("Accel Data: x: %d, y: %d, z: %d, sensor time: %d", accel.x, accel.y, accel.z, accel.sensortime);
-            }
-        }
-
-        if ((act_ch_cnt.x_counter >= BMA400_INT_COUNTER) &&
-            (act_ch_cnt.y_counter >= BMA400_INT_COUNTER) &&
-            (act_ch_cnt.z_counter >= BMA400_INT_COUNTER)) {
-            Serial.println("Activity change interrupt test done");
-            break;
+            Serial.printf("Accel Data: x: %d, y: %d, z: %d, sensor time: %d", accel.x, accel.y, accel.z, accel.sensortime);
+            returnVal = millis();
         }
     }
+
+    if (int_status & BMA400_ASSERTED_ACT_CH_Y) {
+        Serial.println("Activity change interrupt asserted on Y Axis");
+
+        result = bma400_get_accel_data(BMA400_DATA_SENSOR_TIME, &accel, &bma);
+        bma400_check_rslt("bma400_get_accel_data_y", result);
+
+        if (result == BMA400_OK) {
+            Serial.printf("Accel Data: x: %d, y: %d, z: %d, sensor time: %d", accel.x, accel.y, accel.z, accel.sensortime);
+            returnVal = millis();
+        }
+    }
+
+    if (int_status & BMA400_ASSERTED_ACT_CH_Z) {
+        Serial.println("Activity change interrupt asserted on Z Axis");
+
+        result = bma400_get_accel_data(BMA400_DATA_SENSOR_TIME, &accel, &bma);
+        bma400_check_rslt("bma400_get_accel_data_z", result);
+
+        if (result == BMA400_OK) {
+            Serial.printf("Accel Data: x: %d, y: %d, z: %d, sensor time: %d", accel.x, accel.y, accel.z, accel.sensortime);
+            returnVal = millis();
+        }
+    }
+
+    return returnVal;
+}
+
+int BadgeSensors::tap() {
+    int8_t result;
+    uint16_t int_status = 0;
+    int returnVal = -1;
+
+    result = bma400_get_sensor_conf(accel_setting, 2, &bma);
+    bma400_check_rslt("bma400_get_sensor_conf", result);
+
+    result = bma400_get_interrupt_status(&int_status, &bma);
+    bma400_check_rslt("bma400_get_interrupt_status", result);
+
+    if (result == BMA400_OK) {
+        if (int_status & BMA400_ASSERTED_S_TAP_INT) {
+            Serial.println("Single Tap Detected");
+            returnVal = 0;
+        }
+
+        if (int_status & BMA400_ASSERTED_D_TAP_INT) {
+            Serial.println("Double Tap Detected");
+            returnVal = 1;
+        }
+    }
+
+    return returnVal;
 }

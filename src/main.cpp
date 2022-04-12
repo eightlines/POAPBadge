@@ -23,7 +23,7 @@ void setup() {
 }
 
 void loop() {
-  sensors.update();
+  // sensors.update();
   // unsigned long lastActive = sensors.lastActivity();
   // int tapResult = sensors.tap();
   // Serial.println(lastActive);

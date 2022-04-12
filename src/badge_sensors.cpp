@@ -16,6 +16,9 @@ struct bma400_sensor_conf accel_setting[2];
 struct bma400_int_enable int_en[2];
 struct bma400_int_enable int_accel_en;
 
+const byte INT = BMA400_INT_CHANNEL_1;
+bool isr = false;
+
 void BadgeSensors::setup() {
     Serial.println("POAP Badge Setup Sensors");
     
@@ -27,7 +30,7 @@ void BadgeSensors::setup() {
 }
 
 void BadgeSensors::update() {
-    
+
 }
 
 int8_t BadgeSensors::configureBMA400() {

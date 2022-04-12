@@ -25,4 +25,5 @@ Smart Badge for displaying and trading POAPs. Based on the [Open Smart Watch](ht
 
 # 3D Printed Files
 * [3D Model](https://a360.co/3DznrJ3)
+* [STLs & 3MF Files](https://github.com/eightlines/POAPBadge/tree/main/models)
 * Model has not been printed yet and may contain incorrect measurements
